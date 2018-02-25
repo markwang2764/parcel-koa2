@@ -1,4 +1,3 @@
-
 const qiniu = require('qiniu')
 const nanoid = require('nanoid')
 const config = require('../config')

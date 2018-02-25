@@ -6,7 +6,7 @@ const SALT_WORK_FACTOR = 10
 const MAX_LOGIN_ATTEMPTS = 5
 const LOCK_TIME = 2*60*60*1000
 
-const userSchema = new Shcema({
+const userSchema = new Schema({
   username: {
     unique: true,
     required: true,
@@ -39,10 +39,18 @@ const userSchema = new Shcema({
   }
 })
 
-userSchema.virtual('isLocked').get(()=>{
+userSchema.virtual('isLocked').get(function() {
   return !!(this.lockUntil && this.lockUntil > Date.now())
 })
-userSchema.pre('save', next => {
+userSchema.pre('save', function(next) {
+  if(this.isNew) {
+    this.meta.createdAt = this.meta.updatedAt = Date.now()
+  } else {
+    this.meta.updatedAt = Date.now()
+  }
+  next()
+})
+userSchema.pre('save', function(next) {
   if(!this.isModified('password')) return next()
 
   bcrypt.genSalt(SALT_WORK_FACTOR, (err, salt)=>{
@@ -81,7 +89,7 @@ userSchema.methods = {
         })
       }else{
         let updates = {
-          &inc: {
+          inc: {
             loginAttempts: 1
           }
         }
